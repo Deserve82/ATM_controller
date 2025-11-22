@@ -82,6 +82,29 @@ public class ATMService {
     }
 
     public Response withdraw(String accountId, int amount) {
+        if (state != ATMState.AUTHENTICATED) {
+            return new Response(2, "User not authenticated");
+        }
+
+        if (amount <= 0) {
+            return new Response(3, "Invalid amount");
+        }
+
+        int currentCash = cashBinRepository.getCurrentCash();
+        if (currentCash < amount) {
+            return new Response(6, "Insufficient cash in ATM");
+        }
+
+        boolean bankSuccess = bankAPIRepository.withdrawAccount(accountId, amount);
+        if (!bankSuccess) {
+            return new Response(7, "Bank withdrawal failed");
+        }
+
+        boolean cashBinSuccess = cashBinRepository.withdraw(amount);
+        if (!cashBinSuccess) {
+            return new Response(8, "Cash bin withdrawal failed");
+        }
+
         return new Response(0, "Withdrawal successful");
     }
 
