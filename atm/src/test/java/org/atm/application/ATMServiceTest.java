@@ -57,4 +57,24 @@ class ATMServiceTest {
         assertEquals(ATMState.CARD_INSERTED, atmService.getState());
         assertEquals(0, atmService.getAccounts().size());
     }
+
+    @Test
+    @DisplayName("인증된 사용자가 잔액 조회를 하면 계좌 잔액이 정상적으로 반환된다")
+    void getBalance_withAuthenticatedUser_shouldReturnBalance() {
+        // Given
+        FakeCardReaderRepository cardReader = new FakeCardReaderRepository(VALID_PIN);
+        FakeBankAPIRepository bankAPI = new FakeBankAPIRepository(VALID_PIN);
+        bankAPI.addAccount(ACCOUNT_ID_1, "Checking Account", 1000);
+        FakeCashBinRepository cashBin = new FakeCashBinRepository(10000);
+
+        ATMService atmService = new ATMService(cardReader, bankAPI, cashBin);
+        atmService.insertCard();
+
+        // When
+        Response response = atmService.getBalance(ACCOUNT_ID_1);
+
+        // Then
+        assertTrue(response.isSuccess());
+        assertEquals(1000, response.getData());
+    }
 }

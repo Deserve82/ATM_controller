@@ -47,6 +47,11 @@ public class ATMService {
 
         return new Response(0, "Card inserted successfully", userAccounts);
     }
+
+    public Response getBalance(String accountId) {
+        return new Response(0, "Balance retrieved", 0);
+    }
+
     public ATMState getState() {
         return state;
     }
