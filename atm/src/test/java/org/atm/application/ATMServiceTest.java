@@ -98,4 +98,48 @@ class ATMServiceTest {
         assertEquals(1500, bankAPI.getBalance(ACCOUNT_ID_1));
         assertEquals(10500, cashBin.getCurrentCash());
     }
+
+    @Test
+    @DisplayName("출금을 하면 은행 계좌 잔액과 ATM 현금 보관함 잔액이 모두 감소한다")
+    void withdraw_shouldDecreaseAccountBalanceAndCashBinBalance() {
+        // Given
+        FakeCardReaderRepository cardReader = new FakeCardReaderRepository(VALID_PIN);
+        FakeBankAPIRepository bankAPI = new FakeBankAPIRepository(VALID_PIN);
+        bankAPI.addAccount(ACCOUNT_ID_1, "Checking Account", 1000);
+        FakeCashBinRepository cashBin = new FakeCashBinRepository(10000);
+
+        ATMService atmService = new ATMService(cardReader, bankAPI, cashBin);
+        atmService.insertCard();
+
+        // When
+        Response response = atmService.withdraw(ACCOUNT_ID_1, 300);
+
+        // Then
+        assertTrue(response.isSuccess());
+        assertEquals(700, bankAPI.getBalance(ACCOUNT_ID_1));
+        assertEquals(9700, cashBin.getCurrentCash());
+    }
+
+    @Test
+    @DisplayName("ATM에 현금이 부족한 상태에서 출금을 시도하면 실패하고 잔액은 변경되지 않는다")
+    void withdraw_withInsufficientCashInATM_shouldFail() {
+        // Given
+        FakeCardReaderRepository cardReader = new FakeCardReaderRepository(VALID_PIN);
+        FakeBankAPIRepository bankAPI = new FakeBankAPIRepository(VALID_PIN);
+        bankAPI.addAccount(ACCOUNT_ID_1, "Checking Account", 5000);
+        FakeCashBinRepository cashBin = new FakeCashBinRepository(100);
+
+        ATMService atmService = new ATMService(cardReader, bankAPI, cashBin);
+        atmService.insertCard();
+
+        // When
+        Response response = atmService.withdraw(ACCOUNT_ID_1, 500);
+
+        // Then
+        assertFalse(response.isSuccess());
+        assertEquals(6, response.getCode());
+        assertEquals("Insufficient cash in ATM", response.getMessage());
+        assertEquals(5000, bankAPI.getBalance(ACCOUNT_ID_1)); // Balance should remain unchanged
+        assertEquals(100, cashBin.getCurrentCash()); // Cash bin should remain unchanged
+    }
 }

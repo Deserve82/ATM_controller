@@ -81,6 +81,9 @@ public class ATMService {
         return new Response(0, "Deposit successful");
     }
 
+    public Response withdraw(String accountId, int amount) {
+        return new Response(0, "Withdrawal successful");
+    }
 
     public ATMState getState() {
         return state;
