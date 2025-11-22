@@ -77,4 +77,25 @@ class ATMServiceTest {
         assertTrue(response.isSuccess());
         assertEquals(1000, response.getData());
     }
+
+    @Test
+    @DisplayName("입금을 하면 은행 계좌 잔액과 ATM 현금 보관함 잔액이 모두 증가한다")
+    void deposit_shouldIncreaseAccountBalanceAndCashBinBalance() {
+        // Given
+        FakeCardReaderRepository cardReader = new FakeCardReaderRepository(VALID_PIN);
+        FakeBankAPIRepository bankAPI = new FakeBankAPIRepository(VALID_PIN);
+        bankAPI.addAccount(ACCOUNT_ID_1, "Checking Account", 1000);
+        FakeCashBinRepository cashBin = new FakeCashBinRepository(10000);
+
+        ATMService atmService = new ATMService(cardReader, bankAPI, cashBin);
+        atmService.insertCard();
+
+        // When
+        Response response = atmService.deposit(ACCOUNT_ID_1, 500);
+
+        // Then
+        assertTrue(response.isSuccess());
+        assertEquals(1500, bankAPI.getBalance(ACCOUNT_ID_1));
+        assertEquals(10500, cashBin.getCurrentCash());
+    }
 }

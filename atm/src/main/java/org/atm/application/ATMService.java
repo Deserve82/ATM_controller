@@ -58,6 +58,12 @@ public class ATMService {
         return new Response(0, "Balance retrieved", balance);
     }
 
+
+    public Response deposit(String accountId, int amount) {
+        return new Response(0, "Deposit successful");
+    }
+
+
     public ATMState getState() {
         return state;
     }
