@@ -30,8 +30,22 @@ public class ATMService {
     }
 
     public Response insertCard() {
+        String pin = cardReaderRepository.getPINNumber();
 
-        return new Response(0, "Card inserted successfully", accounts);
+        boolean isValidPin = bankAPIRepository.checkPinNumber(pin);
+
+        if (!isValidPin) {
+            this.state = ATMState.CARD_INSERTED;
+            this.accounts = new ArrayList<>();
+            return new Response(1, "Invalid PIN number");
+        }
+
+        List<UserAccountInfo> userAccounts = bankAPIRepository.getUserAccountList(pin);
+
+        this.state = ATMState.AUTHENTICATED;
+        this.accounts = userAccounts;
+
+        return new Response(0, "Card inserted successfully", userAccounts);
     }
     public ATMState getState() {
         return state;
