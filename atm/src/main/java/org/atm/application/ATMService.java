@@ -60,6 +60,24 @@ public class ATMService {
 
 
     public Response deposit(String accountId, int amount) {
+        if (state != ATMState.AUTHENTICATED) {
+            return new Response(2, "User not authenticated");
+        }
+
+        if (amount <= 0) {
+            return new Response(3, "Invalid amount");
+        }
+
+        boolean bankSuccess = bankAPIRepository.depositAccount(accountId, amount);
+        if (!bankSuccess) {
+            return new Response(4, "Bank deposit failed");
+        }
+
+        boolean cashBinSuccess = cashBinRepository.deposit(amount);
+        if (!cashBinSuccess) {
+            return new Response(5, "Cash bin deposit failed");
+        }
+
         return new Response(0, "Deposit successful");
     }
 
