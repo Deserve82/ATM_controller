@@ -49,7 +49,13 @@ public class ATMService {
     }
 
     public Response getBalance(String accountId) {
-        return new Response(0, "Balance retrieved", 0);
+        if (state != ATMState.AUTHENTICATED) {
+            return new Response(2, "User not authenticated");
+        }
+
+        int balance = bankAPIRepository.getBalance(accountId);
+
+        return new Response(0, "Balance retrieved", balance);
     }
 
     public ATMState getState() {
